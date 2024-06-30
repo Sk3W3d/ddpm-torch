@@ -197,9 +197,90 @@ class CelebA_HQ(tvds.VisionDataset):
     def __len__(self):
         return len(self.filename)
 
+@register_dataset
+class FingerprintedLSUNBedroomDataset(tvds.VisionDataset):
+    """
+    My custom dataset
+    """
+    base_folder = "fingerprinted-train/fingerprinted_images"  # subdirectory under data root, e.g. ~/datasets
+    resolution = (128, 128)  # re-scaled image resolution
+    channels = 3  # RGB by default
+    transform = transforms.Compose([
+        transforms.Resize((128, 128), interpolation=transforms.InterpolationMode.BILINEAR),
+        transforms.ToTensor(),
+        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+    ])   # your custom transformations
+    all_size = 50000  # your dataset size
 
-ROOT = os.path.expanduser("~/datasets")
+    def __init__(
+            self,
+            root,
+            split, 
+            transform=None
+    ):
+        super().__init__(root, transform=transform)
+        self.filename = sorted([
+            fname
+            for fname in os.listdir(os.path.join(root, self.base_folder))
+            if fname.endswith((".png", ".jpg", ".jpeg", ".bmp"))
+        ], key=lambda name: name.rsplit(".", maxsplit=1)[0])
+        np.random.RandomState(1234).shuffle(self.filename)
 
+    def __getitem__(self, index):
+        im = PIL.Image.open(os.path.join(self.root, self.base_folder, self.filename[index]))
+
+        if self.transform is not None:
+            im = self.transform(im)
+
+        return im
+
+    def __len__(self):
+        return len(self.filename)
+
+
+@register_dataset
+class MultiFingerprintDataset(tvds.VisionDataset):
+    """
+    My custom dataset
+    """
+    base_folder = "lsun-bedroom-multi-target/fingerprinted/dir_0/fingerprinted_images"  # subdirectory under data root, e.g. ~/datasets
+    resolution = (128, 128)  # re-scaled image resolution
+    channels = 3  # RGB by default
+    transform = transforms.Compose([
+        transforms.Resize((128, 128), interpolation=transforms.InterpolationMode.BILINEAR),
+        transforms.ToTensor(),
+        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+    ])   # your custom transformations
+    all_size = 60000  # your dataset size
+
+    def __init__(
+            self,
+            root,
+            split, 
+            transform=None
+    ):
+        super().__init__(root, transform=transform)
+        self.filename = sorted([
+            fname
+            for fname in os.listdir(os.path.join(root, self.base_folder))
+            if fname.endswith((".png", ".jpg", ".jpeg", ".bmp"))
+        ], key=lambda name: name.rsplit(".", maxsplit=1)[0])
+        np.random.RandomState(1234).shuffle(self.filename)
+
+    def __getitem__(self, index):
+        im = PIL.Image.open(os.path.join(self.root, self.base_folder, self.filename[index]))
+
+        if self.transform is not None:
+            im = self.transform(im)
+
+        return im
+
+    def __len__(self):
+        return len(self.filename)
+
+# ROOT = os.path.expanduser("~/datasets")
+# ROOT = os.path.expanduser("/home/jzj/projects/rpp-xli135/jzj/lsun/dataset")
+ROOT = os.path.expanduser("/home/jzj/projects/rpp-xli135/jzj/datasets")
 
 def train_val_split(n_train, val_size, random_seed=None):
     if random_seed is not None:

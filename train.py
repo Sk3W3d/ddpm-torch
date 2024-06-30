@@ -215,9 +215,31 @@ def train(rank=0, args=None, temp_dir=""):
     # in the case of distributed training, resume should always be turned on
     resume = args.resume or distributed
     if resume:
+        resume_from_latest = True # resume from last checkpoint
         try:
             map_location = {"cuda:0": f"cuda:{local_rank}"} if distributed else train_device
             _chkpt_path = args.chkpt_path or chkpt_path
+            if resume_from_latest:
+                def get_latest_checkpoint(checkpoint_dir):
+                    import re
+                    # List all checkpoint files in the directory
+                    checkpoint_files = [f for f in os.listdir(checkpoint_dir) if f.endswith('.pt')]
+
+                    # Use regular expressions to extract epoch numbers
+                    epoch_numbers = []
+                    for file in checkpoint_files:
+                        match = re.search(r'_(\d+)\.pt', file)
+                        if match:
+                            epoch_numbers.append((int(match.group(1)), file))
+
+                    # Sort the list by epoch number and get the latest one
+                    if epoch_numbers:
+                        latest_checkpoint = sorted(epoch_numbers, key=lambda x: x[0], reverse=True)[0][1]
+                        return os.path.join(checkpoint_dir, latest_checkpoint)
+                    else:
+                        return None
+                _chkpt_path = get_latest_checkpoint(chkpt_dir)
+
             trainer.load_checkpoint(_chkpt_path, map_location=map_location)
         except FileNotFoundError:
             logger("Checkpoint file does not exist!")
@@ -264,7 +286,7 @@ def main():
     parser.add_argument("--config-dir", default="./configs", type=str)
     parser.add_argument("--chkpt-dir", default="./chkpts", type=str)
     parser.add_argument("--chkpt-name", default="", type=str)
-    parser.add_argument("--chkpt-intv", default=120, type=int, help="frequency of saving a checkpoint")
+    parser.add_argument("--chkpt-intv", default=50, type=int, help="frequency of saving a checkpoint")
     parser.add_argument("--seed", default=1234, type=int, help="random seed")
     parser.add_argument("--resume", action="store_true", help="to resume training from a checkpoint")
     parser.add_argument("--chkpt-path", default="", type=str, help="checkpoint path used to resume training")
