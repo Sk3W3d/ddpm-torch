@@ -110,6 +110,57 @@ class CIFAR10(tvds.CIFAR10):
 def crop_celeba(img):
     return transforms.functional.crop(img, top=40, left=15, height=148, width=148)  # noqa
 
+
+@register_dataset
+class CustomCelebACont(tvds.VisionDataset):
+    """
+    Large-scale CelebFaces Attributes (CelebA) Dataset <https://mmlab.ie.cuhk.edu.hk/projects/CelebA.html>
+    """
+    base_folders = ["/home/jzj/scratch/datasets/celeba/female_fingerprinted/fingerprinted_images", "/home/jzj/scratch/ddpm_generated/all_male_300/eval/customceleba/customceleba_300_epch500_ddim"]
+
+    resolution = (64, 64)  # re-scaled image resolution
+    channels = 3  # RGB by default
+    transform = transforms.Compose([
+        transforms.Resize((64, 64), interpolation=transforms.InterpolationMode.BILINEAR),
+        transforms.ToTensor(),
+        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+    ])   # your custom transformations
+
+    def __init__(
+            self,
+            root,
+            split, 
+            transform=None
+    ):
+        super().__init__(root, transform=transform)
+        # self.filename = sorted([
+        #     fname
+        #     for fname in os.listdir(os.path.join(root, self.base_folder))
+        #     if fname.endswith((".png", ".jpg", ".jpeg", ".bmp"))
+        # ], key=lambda name: name.rsplit(".", maxsplit=1)[0])
+        # np.random.RandomState(1234).shuffle(self.filename)
+
+        self.files = []
+        for base_folder in self.base_folders:
+            for fname in os.listdir(self.base_folder):
+                if fname.endswith((".png", ".jpg", ".jpeg", ".bmp")):
+                    self.files.append(os.path.join(base_folder, fname))
+        self.files = sorted(self.files, key=lambda name: name.rsplit(".", maxsplit=1)[0])
+        np.random.RandomState(1234).shuffle(self.files)
+
+    def __getitem__(self, index):
+        # im = PIL.Image.open(os.path.join(self.root, self.base_folder, self.filename[index]))
+        im = PIL.Image.open(self.files[index])
+
+        if self.transform is not None:
+            im = self.transform(im)
+
+        return im
+
+    def __len__(self):
+        return len(self.files)
+
+
 @register_dataset
 class CustomCelebA(tvds.VisionDataset):
     """

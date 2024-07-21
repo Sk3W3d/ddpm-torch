@@ -17,7 +17,9 @@ source /home/jzj/projects/rpp-xli135/jzj/ArtificialGANFingerprints/.venv/bin/act
 
 # export CUDA_VISIBLE_DEVICES=0,1,2,3&&torchrun --standalone --nproc_per_node 4 --rdzv_backend c10d train.py --dataset customceleba --root /home/jzj/projects/rpp-xli135/jzj/datasets --distributed
 
-export CUDA_VISIBLE_DEVICES=0,1,2,3&&torchrun --standalone --nproc_per_node 4 --rdzv_backend c10d train.py --dataset customcifar10 --root /home/jzj/projects/def-xli135/jzj/datasets --distributed
+export CUDA_VISIBLE_DEVICES=0,1,2,3&&torchrun --standalone --nproc_per_node 4 --rdzv_backend c10d train.py --dataset customcifar10 --root /home/jzj/scratch --distributed
+
+# export CUDA_VISIBLE_DEVICES=0,1,2,3&&torchrun --standalone --nproc_per_node 4 --rdzv_backend c10d train.py --dataset customcifar10 --root /home/jzj/projects/def-xli135/jzj/datasets --distributed
 
 # export CUDA_VISIBLE_DEVICES=0,1,2,3&&torchrun --standalone --nproc_per_node 4 --rdzv_backend c10d train.py --dataset customcifar10 --root /home/jzj/projects/rpp-xli135/jzj/datasets --distributed
 
