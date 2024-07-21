@@ -13,3 +13,4 @@ chkpts
 
 .venv
 *.out
+*.sh
