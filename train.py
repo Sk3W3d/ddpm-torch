@@ -241,7 +241,7 @@ def train(rank=0, args=None, temp_dir=""):
                 _chkpt_path = get_latest_checkpoint(chkpt_dir)
 
             trainer.load_checkpoint(_chkpt_path, map_location=map_location)
-        except FileNotFoundError:
+        except:
             logger("Checkpoint file does not exist!")
             logger("Starting from scratch...")
 

@@ -43,6 +43,48 @@ class MNIST(tvds.MNIST):
     def __getitem__(self, index):
         return super().__getitem__(index)[0]
 
+@register_dataset
+class CustomCIFAR10(tvds.VisionDataset):
+    
+    base_folder = "cifar/half_fingerprinted/airplane"  # subdirectory under data root, e.g. ~/datasets
+
+    resolution = (32, 32)
+    channels = 3
+    transform = transforms.Compose([
+        transforms.RandomHorizontalFlip(),
+        transforms.ToTensor(),
+        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+        # transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))
+    ])
+    _transform = transforms.PILToTensor()
+
+    all_size = 5000  # your dataset size
+
+    def __init__(
+            self,
+            root,
+            split, 
+            transform=None
+    ):
+        super().__init__(root, transform=transform)
+        self.filename = sorted([
+            fname
+            for fname in os.listdir(os.path.join(root, self.base_folder))
+            if fname.endswith((".png", ".jpg", ".jpeg", ".bmp"))
+        ], key=lambda name: name.rsplit(".", maxsplit=1)[0])
+        np.random.RandomState(1234).shuffle(self.filename)
+
+    def __getitem__(self, index):
+        im = PIL.Image.open(os.path.join(self.root, self.base_folder, self.filename[index]))
+
+        if self.transform is not None:
+            im = self.transform(im)
+
+        return im
+
+    def __len__(self):
+        return len(self.filename)
+
 
 @register_dataset
 class CIFAR10(tvds.CIFAR10):
@@ -67,6 +109,46 @@ class CIFAR10(tvds.CIFAR10):
 
 def crop_celeba(img):
     return transforms.functional.crop(img, top=40, left=15, height=148, width=148)  # noqa
+
+@register_dataset
+class CustomCelebA(tvds.VisionDataset):
+    """
+    Large-scale CelebFaces Attributes (CelebA) Dataset <https://mmlab.ie.cuhk.edu.hk/projects/CelebA.html>
+    """
+    base_folder = "celeba/male_fingerprinted_2/fingerprinted_images"
+    resolution = (64, 64)  # re-scaled image resolution
+    channels = 3  # RGB by default
+    transform = transforms.Compose([
+        transforms.Resize((64, 64), interpolation=transforms.InterpolationMode.BILINEAR),
+        transforms.ToTensor(),
+        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+    ])   # your custom transformations
+
+    def __init__(
+            self,
+            root,
+            split, 
+            transform=None
+    ):
+        super().__init__(root, transform=transform)
+        self.filename = sorted([
+            fname
+            for fname in os.listdir(os.path.join(root, self.base_folder))
+            if fname.endswith((".png", ".jpg", ".jpeg", ".bmp"))
+        ], key=lambda name: name.rsplit(".", maxsplit=1)[0])
+        np.random.RandomState(1234).shuffle(self.filename)
+
+    def __getitem__(self, index):
+        im = PIL.Image.open(os.path.join(self.root, self.base_folder, self.filename[index]))
+
+        if self.transform is not None:
+            im = self.transform(im)
+
+        return im
+
+    def __len__(self):
+        return len(self.filename)
+
 
 
 @register_dataset
